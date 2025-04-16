@@ -6,6 +6,7 @@ exports.up = function (knex) {
   return knex.schema.createTable('prodotti_venduti', function (table) {
     table.increments('id').primary();
     table.string('nome').notNullable();
+    table.integer('numero_foto').notNullable()
     table.timestamps(true, true);
   });
 };
