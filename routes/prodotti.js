@@ -12,5 +12,21 @@ router.get('/', async (req, res) => {
   }
 })
 
+router.post('/', async (req, res) => {
+  const { nome } = req.body
+
+  if (!nome) {
+    return res.status(400).json({ err: 'Il campo "nome" è obbligatorio' })
+  }
+
+  try {
+    const [id] = await db('prodotti_venduti').insert({ nome })
+    res.status(201).json({ id, nome })
+  } catch (err) {
+    console.error('Errore nell\'inserimento del prodotto:', err);
+    res.status(500).json({ err: 'Errore interno del server' });
+  }
+})
+
 
 module.exports = router;
