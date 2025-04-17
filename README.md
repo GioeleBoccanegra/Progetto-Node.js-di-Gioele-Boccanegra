@@ -1,6 +1,3 @@
-Ecco un esempio di README aggiornato per il tuo progetto Node.js:
-
----
 
 # Progetto Node.js - Sistema di Prodotti, Utenti e Ordini "Swap"
 
@@ -96,10 +93,4 @@ Se vuoi contribuire al progetto:
 4. Push il tuo branch (`git push origin feature/nuova-feature`).
 5. Apri una pull request.
 
-## Licenza
 
-Questo progetto è sotto licenza MIT - vedi il file [LICENSE](LICENSE) per maggiori dettagli.
-
----
-
-Questo formato dovrebbe coprire le informazioni principali per gli sviluppatori e gli utenti del tuo progetto. Fammi sapere se vuoi aggiungere altro!
