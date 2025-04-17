@@ -4,8 +4,24 @@ const db = require('../db.js');
 
 router.get('/', async (req, res) => {
   try {
-    const ordiniSwap = await db('ordini_swap as o')
-      .select('o.id as ordine_id', 'o.data_ordine');
+
+    const { data_ordine, nome_prodotto } = req.query
+
+    let query = db('ordini_swap as o')
+      .select('o.id as ordine_id', 'o.data_ordine')
+      .join('ordini_swap_prodotti as op', 'o.id', 'op.ordine_swap_id')
+      .join('prodotti_venduti as p', 'op.prodotto_id', 'p.id').distinct()
+
+    if (nome_prodotto) {
+      query = query.where('p.nome', 'like', `%${nome_prodotto}%`);
+    }
+
+    if (data_ordine) {
+      query = query.where('o.data_ordine', data_ordine)
+    }
+
+    const ordiniSwap = await query;
+
 
 
     // Mappa gli ordini per ottenere i dettagli associati
@@ -23,7 +39,7 @@ router.get('/', async (req, res) => {
           'u.cognome as utente_cognome',
           'u.email as utente_email'
         )
-        .where('ou.ordine_swap_id', ordineId);
+        .where('ou.ordine_swap_id', ordineId).distinct()
 
       const prodottiSwap = await db('ordini_swap_prodotti as op')
         .join('prodotti_venduti as p', 'op.prodotto_id', 'p.id')
@@ -32,7 +48,7 @@ router.get('/', async (req, res) => {
           'p.nome as prodotto_nome',
           'p.numero_foto'
         )
-        .where('op.ordine_swap_id', ordineId);
+        .where('op.ordine_swap_id', ordineId).distinct()
 
       const utentiDettagliati = utentiSwap.map(utente => ({
         utente_id: utente.utente_id,

@@ -11,6 +11,6 @@ app.listen(3000, () => {
 })
 
 
-app.use("/api/products", prodottiRoutes)
+app.use("/api/prodotti", prodottiRoutes)
 app.use("/api/utenti", utentiRoutes)
 app.use("/api/ordini", ordiniRoutes)
