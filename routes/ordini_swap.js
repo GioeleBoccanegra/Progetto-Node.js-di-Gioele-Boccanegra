@@ -4,24 +4,61 @@ const db = require('../db.js');
 
 router.get('/', async (req, res) => {
   try {
-    const ordini_swap = await db('ordini_swap as o')
-      .leftJoin('ordini_swap_prodotti as op', 'o.id', 'op.prodotto_id')
-      .leftJoin('ordini_swap_utenti as ou', 'o.id', 'ou.utente_id')
-      .leftJoin('utenti as u', 'ou.utente_id', 'u.id')
-      .leftJoin('prodotti_venduti as p', 'op.prodotto_id', 'p.id')
-      .select(
-        'o.id as ordine_id',
-        'o.created_at',
-        'u.id as utente_id',
-        'u.nome as utente_nome',
-        'u.cognome',
-        'u.email',
-        'p.id as prodotto_id',
-        'p.nome as prodotto_nome',
-        'p.numero_foto'
-      )
+    const ordiniSwap = await db('ordini_swap as o')
+      .select('o.id as ordine_id', 'o.data_ordine');
 
-    res.status(200).json(ordini_swap);
+
+    // Mappa gli ordini per ottenere i dettagli associati
+    const ordiniConDettagli = await Promise.all(ordiniSwap.map(async (ordine) => {
+      const ordineId = ordine.ordine_id
+      if (!ordineId) {
+        return res.status(404).json({ err: 'ne3ssun ordine trovato' });
+      }
+
+      const utentiSwap = await db('ordini_swap_utenti as ou')
+        .join('utenti as u', 'ou.utente_id', 'u.id')
+        .select(
+          'u.id as utente_id',
+          'u.nome as utente_nome',
+          'u.cognome as utente_cognome',
+          'u.email as utente_email'
+        )
+        .where('ou.ordine_swap_id', ordineId);
+
+      const prodottiSwap = await db('ordini_swap_prodotti as op')
+        .join('prodotti_venduti as p', 'op.prodotto_id', 'p.id')
+        .select(
+          'p.id as prodotto_id',
+          'p.nome as prodotto_nome',
+          'p.numero_foto'
+        )
+        .where('op.ordine_swap_id', ordineId);
+
+      const utentiDettagliati = utentiSwap.map(utente => ({
+        utente_id: utente.utente_id,
+        utente_nome: utente.utente_nome,
+        utente_cognome: utente.utente_cognome,
+        utente_email: utente.utente_email
+      }));
+
+      const prodottiDettagliati = prodottiSwap.map(prodotto => ({
+        prodotto_id: prodotto.prodotto_id,
+        prodotto_nome: prodotto.prodotto_nome,
+        numero_foto: prodotto.numero_foto
+      }));
+
+      // Restituisci l'ordine con i dettagli associati
+      return {
+        ordine_id: ordineId,
+        data_ordine: ordine.data_ordine,
+        utenti: utentiDettagliati,
+        prodotti: prodottiDettagliati
+      };
+
+    }))
+
+    res.status(200).json({ ordini: ordiniConDettagli });
+
   } catch (err) {
     console.error('Errore nel recupero dei prodotti:', err);
     res.status(500).json({ err: 'Errore interno del server' });
