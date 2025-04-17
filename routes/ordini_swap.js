@@ -110,7 +110,7 @@ router.post('/', async (req, res) => {
     });
 
   } catch (err) {
-    console.error("Errore nell'aggiornamento del prodotto:", err);
+    console.error("Errore nella creazione dell'ordine:", err);
     res.status(500).json({ err: 'Errore interno del server' });
   }
 });
@@ -215,7 +215,7 @@ router.put('/:id', async (req, res) => {
     });
 
   } catch (err) {
-    console.error("Errore nell'aggiornamento del prodotto:", err);
+    console.error("Errore nell'aggiornamento dell'ordine:", err);
     res.status(500).json({ err: 'Errore interno del server' });
   }
 });
@@ -224,18 +224,28 @@ router.put('/:id', async (req, res) => {
 
 
 router.delete('/:id', async (req, res) => {
-  const { id } = req.params
+  const ordineId = req.params.id
+
   try {
-    const rowsAffected = await db('prodotti_venduti').where('id', id).delete()
-    if (rowsAffected === 0) {
-      return res.status(404).json({ err: 'Il prodotto non esiste' })
+    const trx = await db.transaction();
+
+    const ordineEsistente = await trx('ordini_swap').where({ id: ordineId }).first()
+    if (!ordineEsistente) {
+      await trx.rollback()
+      return res.status(404).json({ err: 'Ordine non trovato' });
     }
-    res.status(200).json({ message: 'Prodotto eliminato con successo' });
+    await trx('ordini_swap').where({ id: ordineId }).del();
+    await trx.commit();
+    res.status(200).json({
+      message: 'Ordine eliminato con successo',
+    });
+
+
+
   } catch (err) {
-    console.error("Errore nella cancellazione del prodotto:", err);
+    console.error("Errore nell'eliminazione dell'ordine:", err);
     res.status(500).json({ err: 'Errore interno del server' });
   }
-
 })
 
 
