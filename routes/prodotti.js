@@ -1,19 +1,16 @@
+//prodotti.js
+
 const express = require('express');
 const router = express.Router();
 const db = require('../db.js');
+const multer = require('multer');
 
-router.get('/', async (req, res) => {
-  try {
-    const prodotti = await db('prodotti_venduti').select('*')
-    res.status(200).json(prodotti)
-  } catch (err) {
-    console.error('Errore nel recupero dei prodotti:', err);
-    res.status(500).json({ err: 'Errore interno del server' });
-  }
-})
+const upload = multer({ dest: 'uploads/' });
 
-router.post('/', async (req, res) => {
+
+router.post('/', upload.array('immagini', 10), async (req, res) => {
   const { nome, numero_foto } = req.body
+  const immagini = req.files;
 
   if (!nome) {
     return res.status(400).json({ err: 'Il campo "nome" è obbligatorio' })
@@ -21,18 +18,32 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ err: 'Il campo "numero_foto" è obbligatorio' })
   }
 
+  if (immagini.length !== parseInt(numero_foto, 10)) {
+    return res.status(400).json({ err: 'Il numero delle immagini caricate non corrisponde al numero_foto fornito' });
+  }
+
   try {
     const [id] = await db('prodotti_venduti').insert({ nome, numero_foto })
-    res.status(201).json({ id, nome, numero_foto })
+
+    if (immagini && immagini.length > 0) {
+      const immaginiData = immagini.map(file => ({
+        prodotto_id: id,
+        url: file.path,
+        descrizione: file.originalname
+      }))
+      await db('immagini_prodotti').insert(immaginiData);
+    }
+    res.status(201).json({ id, nome, numero_foto, immagini: immagini.map(img => img.path) })
   } catch (err) {
     console.error('Errore nell\'inserimento del prodotto:', err);
     res.status(500).json({ err: 'Errore interno del server' });
   }
 })
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', upload.array('immagini', 10), async (req, res) => {
   const { id } = req.params
   const { nome, numero_foto } = req.body
+  const immagini = req.files
 
   if (!nome) {
     return res.status(400).json({ err: 'Il campo "nome" è obbligatorio' })
@@ -52,7 +63,18 @@ router.put('/:id', async (req, res) => {
     if (rowsAffected === 0) {
       return res.status(404).json({ err: 'Il prodotto non esiste' })
     }
-    res.status(200).json({ id, ...updateProdotto });
+
+    if (immagini.length > 0) {
+      await db('immagini_prodotti').where('prodotto_id', id).del();
+
+      const immaginiData = immagini.map(file => ({
+        prodotto_id: id,
+        url: file.path,
+        descrizione: file.originalname
+      }));
+      await db('immagini_prodotti').insert(immaginiData);
+    }
+    res.status(200).json({ id, ...updateProdotto, immagini: immagini.map(img => img.path) });
   } catch (err) {
     console.error("Errore nell'aggiornamento del prodotto:", err);
     res.status(500).json({ err: 'Errore interno del server' });
