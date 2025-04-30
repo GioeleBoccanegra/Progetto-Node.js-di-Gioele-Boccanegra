@@ -1,6 +1,6 @@
 // controllers/utenti/updateUtente.js
 
-const UtenteModel = require('../../models/utenteModel');
+const UtenteModel = require('../../models/utenti');
 
 const updateUtente = async (req, res) => {
   const { id } = req.params;

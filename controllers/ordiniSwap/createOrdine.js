@@ -1,4 +1,4 @@
-const OrdineSwapModel = require('../../models/ordiniSwapModel');
+const OrdineSwapModel = require('../../models/ordiniSwap');
 
 const createOrdineSwap = async (req, res) => {
   const { data_ordine, utenti, prodotti } = req.body;

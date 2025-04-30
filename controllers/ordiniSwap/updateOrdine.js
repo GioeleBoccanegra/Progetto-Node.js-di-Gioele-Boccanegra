@@ -1,4 +1,4 @@
-const OrdineSwapModel = require('../../models/ordiniSwapModel');
+const OrdineSwapModel = require('../../models/ordiniSwap');
 
 const updateOrdineSwap = async (req, res) => {
   const ordineId = req.params.id;

@@ -1,6 +1,6 @@
 // controllers/utenti/createUtente.js
 
-const UtenteModel = require('../../models/utenteModel');
+const UtenteModel = require('../../models/utenti');
 
 const createUtente = async (req, res) => {
   const { nome, cognome, email } = req.body;

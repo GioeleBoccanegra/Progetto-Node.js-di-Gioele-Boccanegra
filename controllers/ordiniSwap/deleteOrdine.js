@@ -1,4 +1,4 @@
-const OrdineSwapModel = require('../../models/ordiniSwapModel');
+const OrdineSwapModel = require('../../models/ordiniSwap');
 
 const deleteOrdineSwap = async (req, res) => {
   const ordineId = req.params.id;

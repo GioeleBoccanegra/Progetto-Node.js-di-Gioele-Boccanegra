@@ -1,4 +1,4 @@
-const prodottiModel = require('../../models/prodottiModel');
+const prodottiModel = require('../../models/prodottiVenduti');
 const db = require('../../db');
 
 const deleteProdotto = async (req, res) => {

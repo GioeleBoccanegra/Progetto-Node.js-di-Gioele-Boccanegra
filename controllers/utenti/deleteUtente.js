@@ -1,6 +1,6 @@
 // controllers/utenti/deleteUtente.js
 
-const UtenteModel = require('../../models/utenteModel');
+const UtenteModel = require('../../models/utenti');
 
 const deleteUtente = async (req, res) => {
   const { id } = req.params;

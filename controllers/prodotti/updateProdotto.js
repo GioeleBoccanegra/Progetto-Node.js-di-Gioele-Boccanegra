@@ -1,4 +1,4 @@
-const prodottiModel = require('../../models/prodottiModel');
+const prodottiModel = require('../../models/prodottiVenduti');
 const multer = require('multer');
 const upload = multer({ dest: 'uploads/' });
 const db = require('../../db');
