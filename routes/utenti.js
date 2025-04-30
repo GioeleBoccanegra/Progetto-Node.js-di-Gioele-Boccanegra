@@ -3,9 +3,19 @@ const router = express.Router();
 const db = require('../db.js');
 
 router.get('/', async (req, res) => {
+  const { page = 1, limit = 10 } = req.query
+  const limitInt = parseInt(limit);
+  const pageInt = parseInt(page);
+  const offset = (pageInt - 1) * limitInt;
   try {
-    const utenti = await db('utenti').select('*')
-    res.status(200).json(utenti)
+    const utenti = await db('utenti')
+      .select('*')
+      .limit(limitInt)
+      .offset(offset);
+    res.status(200).json({
+      page: pageInt,
+      limit: limitInt, utenti: utenti
+    })
   } catch (err) {
     console.error('Errore nel recupero dei utenti:', err);
     res.status(500).json({ err: 'Errore interno del server' });

@@ -5,7 +5,26 @@ const db = require('../db.js');
 router.get('/', async (req, res) => {
   try {
 
-    const { data_ordine, nome_prodotto } = req.query
+    const { data_ordine, nome_prodotto, page = 1, limit = 10 } = req.query
+
+    const limitInt = parseInt(limit);
+    const pageInt = parseInt(page);
+    const offset = (pageInt - 1) * limitInt;
+
+    let countQuery = db('ordini_swap as o')
+      .join('ordini_swap_prodotti as op', 'o.id', 'op.ordine_swap_id')
+      .join('prodotti_venduti as p', 'op.prodotto_id', 'p.id');
+
+    if (nome_prodotto) {
+      countQuery = countQuery.where('p.nome', 'like', `%${nome_prodotto}%`);
+    }
+
+    if (data_ordine) {
+      countQuery = countQuery.where('o.data_ordine', data_ordine);
+    }
+
+    const totalCountResult = await countQuery.countDistinct('o.id as count');
+    const totalCount = totalCountResult[0].count;
 
     let query = db('ordini_swap as o')
       .select('o.id as ordine_id', 'o.data_ordine')
@@ -19,6 +38,8 @@ router.get('/', async (req, res) => {
     if (data_ordine) {
       query = query.where('o.data_ordine', data_ordine)
     }
+
+    query = query.limit(limitInt).offset(offset);
 
     const ordiniSwap = await query;
 
@@ -73,7 +94,15 @@ router.get('/', async (req, res) => {
 
     }))
 
-    res.status(200).json({ ordini: ordiniConDettagli });
+    const ordiniFiltrati = ordiniConDettagli.filter(o => o !== null);
+
+    res.status(200).json({
+      page: pageInt,
+      limit: limitInt,
+      totalCount: parseInt(totalCount),
+      totalPages: Math.ceil(totalCount / limitInt),
+      ordini: ordiniFiltrati,
+    });
 
   } catch (err) {
     console.error('Errore nel recupero dei prodotti:', err);
